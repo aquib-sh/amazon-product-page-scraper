@@ -24,7 +24,24 @@ class ProductScraper:
         return title
 
     def __get_product_price(self):
-        price_temp = self.soup.find("span", {"class":"a-price-whole"}).text.strip()
+        price_temp = self.soup.find("span", {"class":"a-price-whole"})
+        if price_temp is not None:
+            price_temp = price_temp.text.strip()
+        else:
+            # If the price is given as a range
+            price_range = self.soup.find("span", {"class":"a-price-range"})
+            if price_range is not None:
+                price_temp = "-".join([elem.find("span", {"class":"a-offscreen"}).text for elem in price_range.find_all("span", {"class":"a-price"})])
+                return price_temp
+            else:
+                # if the price is not ranged
+                price_temp = self.soup.find("span", {"class":"a-price"})
+                if price_temp is not None:
+                    price_temp = price_temp.find("span", {"class":"a-offscreen"}).text.strip()
+
+        # If price is not given return
+        if price_temp is None: return "N/A"
+
         # Add only the numeric chars
         price = ""
         for char in price_temp:
